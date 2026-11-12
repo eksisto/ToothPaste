@@ -78,6 +78,8 @@ LED 驱动是 `rgbRMT` 组件，状态由 `stateManager` 的回调着色，主�
 | 蓝闪 0.5 s | DROP | 包被丢弃：长度不足 / 队列满 / 解密失败——排障时最有用的信号 |
 | 红常亮约 3 s → 橙 | ERROR | 处理出错后自动复位状态 |
 
+解密失败的 DROP 同时经响应特征发一条 DECRYPT_FAILED 通知（每次连接只发第一条），网页端据此提示重新配对。
+
 ## 生成 ToothPacket 代码
 
 固件侧 protobuf 代码在 `components/toothPacket/toothpacket.pb.c/h`，由 nanopb 从 `shared/toothpacket.proto` 生成，不要手改。

@@ -20,9 +20,8 @@
 | `npm run dev` | 开发服务器，监听 0.0.0.0:3000 |
 | `npm run build` | 生产构建，产物在 `dist/` |
 | `npm run typecheck` | 对 `tsconfig.json` 与 `tsconfig.node.json` 各跑一次 `tsc --noEmit` |
+| `npm test` | vitest 单测（协议解包、版本门控） |
 | `npm run deploy` | 把 `dist/` 推送到 `Brisk4t/ToothPasteWeb`（gh-pages） |
-
-测试依赖（@testing-library）已声明，但仓库目前没有测试脚本。
 
 浏览器只在 secure context（HTTPS 或 localhost）暴露 Web Bluetooth。Firefox 不支持。Brave 桌面版默认关闭 Web Bluetooth，需在设置中开启（`navigator.bluetooth` 为 undefined 时会报 `Cannot read properties of undefined`）。
 
@@ -78,9 +77,10 @@
 
 Web 侧生成物是 `src/services/packetService/toothpacket/toothpacket_pb.js`（protoc-gen-es 生成，不要手改），源文件是仓库根目录 `shared/toothpacket.proto`。
 
-`package.json` 里的 `npm run protoc` 脚本按 `web/` 工作目录解析 `./shared` 路径，而 `web/shared` 不存在——脚本现状待确认，修复前不要依赖它（见 [PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md) 待确认节）。
+在 `web/` 目录执行 `npm run protoc` 重新生成。脚本解析 `../shared`（协议文件在仓库根目录），protoc 二进制经 `npx` 自动下载。
 
 ## 固件版本兼容
 
 - 固件版本号定义在 `firmware/components/ble/ble.h`（`FIRMWARE_VERSION`），随响应通知下发。
 - Web 端兼容列表在 `BLEContext.tsx`（`supportedFirmwareVersions`），`^` 后缀表示「不低于」，如 `0.9.0^`。不兼容时连接状态置为 unsupported。
+- 连接验证（VERIFY/PONG）的版本门控在 `packetFunctions.ts` 的 `supportsVerify`：固件低于 0.10.0 不发 VERIFY，收到 CHALLENGE 直接 ready。判定逻辑的单测在 `packetFunctions.test.ts`（`npm test`）。

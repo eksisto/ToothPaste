@@ -13,7 +13,8 @@ ToothPaste 由三部分组成：
 1. 浏览器扫描广播 ToothPaste 服务的设备并连接。
 2. 浏览器从本地存储读出自己的公钥，作为 AUTH 包发送以声明身份。
 3. 固件识别身份后生成新的会话盐，经 CHALLENGE 通知下发。双方各自派生会话 AES 密钥。
-4. 之后所有输入都装进加密包发送，固件解密后转成 USB HID 报文。
+4. 浏览器发加密 VERIFY 包，固件解密成功后回 PONG。浏览器收到 PONG 才把连接置为 ready。密钥不一致（如粘错公钥）会在这里或随后的 DECRYPT_FAILED 通知中暴露，界面提示重新配对。
+5. 之后所有输入都装进加密包发送，固件解密后转成 USB HID 报文。
 
 首次使用的配对流程（公钥带外交换）见 [PROTOCOL.md](PROTOCOL.md)。
 
@@ -80,6 +81,21 @@ stateManager  → rgbRMT
 | DROP | 包被丢弃（长度不足、队列满、解密失败）后的瞬时提示，随后回到正常状态 |
 | ERROR | 处理出错，LED 常亮数秒后复位 |
 
+## Web 连接状态
+
+`BLEContext.tsx` 的 `ConnectionStatus` 驱动界面。绿框只在验证通过后出现：
+
+| 状态 | 含义 | 界面表现 |
+|---|---|---|
+| disconnected (0) | 未连接 | 红框 |
+| ready (1) | 已验证（固件 ≥ 0.10.0 时以 PONG 为准），可发送 | 绿框 |
+| connected (2) | 已连接但未配对（PEER_UNKNOWN 或本地无密钥） | 橙框 + 配对横幅 |
+| unsupported (3) | 固件版本不兼容 | 橙框 |
+| verifying (4) | 密钥已派生，VERIFY 已发，等 PONG（3 秒超时） | 蓝框脉动 |
+| mismatch (5) | DECRYPT_FAILED 或验证超时，密钥不匹配 | 红框 + 重新配对横幅 |
+
+固件低于 0.10.0 时跳过验证：收到 CHALLENGE 直接 ready，避免老固件不回 PONG 被误判为 mismatch。
+
 ## 双加密路径
 
 `CONFIG_TOOTHPASTE_SOFTWARE_CRYPTO` 决定 ECDH 私钥放在哪，`SecureSession.cpp` 用 `USE_SOFTWARE_CRYPTO` 宏区分：
@@ -97,7 +113,7 @@ stateManager  → rgbRMT
 
 - **views/**：页面。`LiveCapture`（实时键鼠控制）、`BulkSend`（整段文本与 Duckyscript 批量发送）、`about/`（产品介绍页，演示区用模拟输入）。
 - **components/**：UI 组件。`overlays/`（配对、固件更新、引导、认证弹窗）、`inputComponents/`（触控板、预设按键）、`Keyboard/`（屏上虚拟键盘）、`duckyscript/`（脚本编辑器）。
-- **context/**：三个 React context 承载全局逻辑。`BLEContext`（连接、发包队列、通知、固件版本兼容检查）、`ECDHContext`（密钥协商与加解密）、`DuckyscriptContext`（脚本管理）。
+- **context/**：三个 React context 承载全局逻辑。`BLEContext`（连接、连接验证 VERIFY/PONG、发包队列、通知、固件版本兼容检查）、`ECDHContext`（密钥协商与加解密）、`DuckyscriptContext`（脚本管理）。
 - **services/**：纯逻辑。`packetService/`（包构造、FIFO 队列）、`inputHandlers/`（键盘鼠标事件转包、实时输入 hooks）、`localSecurity/`（加密存储、认证状态机）、`duckyscript/`（解析与存储）。
 
 没有路由库。`App.tsx` 用 state 在视图间切换（live / paste / about），弹窗同理（pair / update / quickstart）。

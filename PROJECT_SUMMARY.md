@@ -81,11 +81,11 @@ python3 tools/ble_probe.py
 
 - **Web BLE 只有 Chromium 内核浏览器支持**。Firefox 不可用。Brave 桌面版默认不暴露 `navigator.bluetooth`。
 - **发射端与接收端必须先配对**。公钥交换是带外的：板子把公钥以键盘打字的方式输出到所插主机，人工粘贴到网页端。长按 BOOT 键 10 秒进入配对模式。
+- **连接经 VERIFY/PONG 验证后可用**。密钥不匹配时网页显示重新配对提示，设备菜单的 Re-pair Device 入口随时可重配，不需要清浏览器数据。
 - **板子是单客户端设备**。网页已连接时，BLE 探针等其它客户端无法同时连接。
 - **协议对包大小有硬限制**，改 `shared/toothpacket.proto` 前先读 [docs/PROTOCOL.md](docs/PROTOCOL.md)。
 - **固件有两条加密路径**：软件（mbedTLS PSA）与硬件（ATECC608B），由 `CONFIG_TOOTHPASTE_SOFTWARE_CRYPTO` 切换，`SecureSession.cpp` 用 `USE_SOFTWARE_CRYPTO` 宏区分。改加密相关代码时两条路径都要验证。
 - **固件日志默认输出密钥材料**。`main/log_config.cpp` 当前为 `LOG_BUILD_DEBUG` 模式，发布前切到 `LOG_BUILD_PROD`。
-- **Web 端 BLE 发送失败是静默的**（异常被 catch 后只写 console）。
 
 ## 安全模型
 
@@ -108,5 +108,4 @@ python3 tools/ble_probe.py
 
 ## 待确认
 
-- `web/package.json` 的 `protoc` 脚本以 `web/` 为工作目录解析 `./shared`，但 `web/shared` 不存在（协议文件在仓库根目录 `shared/`）。该脚本现状无法运行，生成命令待验证。
 - Release 流水线：`web/scripts/fetch-firmware.mjs` 注释提到 release workflow 负责合并固件镜像，但本仓库 `.github/` 下没有 workflow 文件。工作流可能在其它分支或仓库。
