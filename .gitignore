@@ -1,0 +1,18 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor: keep shared settings, ignore local editor files
+.vscode/*
+!.vscode/settings.json
+
+# ESP-IDF build output (all build variants; build/ itself also ignored in firmware/.gitignore)
+firmware/build*/
+
+# Generated full configs from variant builds (committed configs live in sdkconfig.defaults.*)
+firmware/sdkconfig_*
+
+# Python tools
+__pycache__/
+*.py[cod]
+.venv/

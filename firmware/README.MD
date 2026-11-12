@@ -1,5 +1,7 @@
 # ToothPaste
 
+> For build variants, Kconfig options, logging modes, and LED states, see [docs/FIRMWARE.md](../docs/FIRMWARE.md) (in Chinese).
+
 # What does it take to make one?
 
 In the interest of keeping the concept simple, a ToothPaste Receiver (I'm thinking of a more fun name) is **just** an ESP32-S3. The custom pcb only reduces the form-factor to a more dongle-y shape for convenience. 
@@ -26,11 +28,11 @@ It has the bare minimum needed to get USB-C working in device mode and is probab
 Other than the frustration of hand-soldering SMD components while shaking like an alcoholic in withdrawal, assembling a ToothPaste is relatively straightforward.
 
 ### My desk is not this clean, for illustration purposes only...
-![ToothPaste_Build](/firmware/images/ToothPaste_BOM.jpg)
+![ToothPaste_Build](images/ToothPaste_BOM.jpg)
 
 
 ### Voila! - A Completed ToothPaste (My Personal ToothPaste Actually)
-![ToothPaste_Build](/firmware/images/ToothPaste_Finished.jpg)
+![ToothPaste_Build](images/ToothPaste_Finished.jpg)
 
 
 
